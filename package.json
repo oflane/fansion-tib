@@ -1,0 +1,83 @@
+{
+  "name": "fansion-tib",
+  "version": "1.0.0",
+  "description": "模板库",
+  "author": "yaboocn <yaboocn@qq.com>",
+  "main": "lib/fansion-tib.js",
+  "publishConfig": {
+    "registry": "http://localhost:8081/repository/fansion-repo/"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "cross-env NODE_ENV=prod MODE=lib node build/build.js",
+    "dist": "cross-env NODE_ENV=prod MODE=dist node build/build.js"
+  },
+  "devDependencies": {
+    "fansion-base": "^1.0.0",
+    "fansion-fac": "^1.0.0",
+    "fansion-ui": "^1.0.0",
+    "fansion-meta": "^1.0.0",
+    "fansion-env": "^1.0.0",
+    "element-ui": "^2.13.1",
+    "babel-core": "^6.26.3",
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^10.1.0",
+    "babel-runtime": "^6.26.0",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-istanbul": "^6.0.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-friendly-formatter": "^4.0.1",
+    "eslint-loader": "^4.0.2",
+    "eslint-plugin-html": "^6.0.2",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "vue": "^2.6.11",
+    "vue-router": "^3.1.6",
+    "vue-loader": "^15.9.1",
+    "vue-style-loader": "^4.1.2",
+    "vue-template-compiler": "^2.6.11",
+    "css-loader": "^3.5.3",
+    "less": "^3.11.1",
+    "less-loader": "^6.0.0",
+    "style-loader": "^1.2.0",
+    "postcss": "^7.0.27",
+    "postcss-loader": "^3.0.0",
+    "postcss-salad": "^2.0.1",
+    "autoprefixer": "^9.7.6",
+    "url-loader": "^4.1.0",
+    "shelljs": "^0.8.4",
+    "ora": "^4.0.4",
+    "webpack": "^4.43.0",
+    "webpack-bundle-analyzer": "^3.7.0",
+    "webpack-node-externals": "^1.7.2",
+    "webpack-merge": "^4.2.2",
+    "progress-bar-webpack-plugin": "^2.1.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "friendly-errors-webpack-plugin": "^1.7.0",
+    "eventsource-polyfill": "^0.9.6",
+    "file-loader": "^6.0.0",
+    "connect-history-api-fallback": "^1.6.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.3"
+  },
+  "engines": {
+    "node": ">= 4.0.0",
+    "npm": ">= 3.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 9"
+  ]
+}

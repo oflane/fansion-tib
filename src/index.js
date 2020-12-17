@@ -3,7 +3,6 @@
  */
 import fase from 'fansion-base'
 import fac from 'fansion-fac'
-import fmeta from 'fansion-meta'
 import plainSimpleTable from './plain/table/simple-table.tpl.js'
 import plainSimpleForm from './plain/form/simple-form.tpl.js'
 import ofmSimpleTable from './ofm/table/simple-table.tpl.js'
@@ -18,19 +17,16 @@ const templates = {
 const install = (Vue, opt = {}) => {
   fase.init({})
   fac.init({templates})
-  Vue.use(fmeta)
-  const plugins = Vue._installedPlugins
-  if (plugins) {
-    const fameta = plugins.find(v => v.name === 'fansion-meta')
-    fameta && fameta.init({
+  fase.util.init5Exist('fansion-meta', () => {
+    return {
       temetas: {
         'plain-simple-table': () => import('./plain/table/simple-table.temeta.js'),
         'plain-simple-form': () => import('./plain/form/simple-form.temeta.js'),
         'ofm-simple-table': () => import('./ofm/table/simple-table.temeta.js'),
         'ofm-simple-form': () => import('./ofm/form/simple-form.temeta.js')
       }
-    })
-  }
+    }
+  })
 }
 /**
  * 组件入口

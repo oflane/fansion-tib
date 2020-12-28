@@ -12,6 +12,7 @@ const ALL_DATA = fase.constant.ALL_DATA
  * @version 1.0 2017-8-18
  */
 export default {
+  name: '左树矩阵',
   options: {
     components: [
       {
@@ -55,19 +56,19 @@ export default {
         children: [
           {
             class: 'dlg-left-search',
-            comp: {type: 'search', name: 'searchTree', slot: 'left-search', dep: 'searchTree'}
+            comp: {type: 'search', name: 'searchTree', slot: 'left-search', dep: {name: 'searchTree', label: '左树查找'}, nco: true}
           },
           {
             class: 'dlg-left-content',
-            comp: {type: 'simple-tree', name: 'leftTree', slot: 'left-content', '@current-change': 'page.currentNodeChange()'}
+            comp: {type: 'simple-tree', name: 'leftTree', label: '左树', slot: 'left-content', '@current-change': 'page.currentNodeChange()'}
           }
         ]
       },
       {
         class: 'right-content padding-content',
         children: [
-          {type: 'box-list', name: 'boxList', slot: 'right-content'},
-          {type: 'pagination', slot: 'foot-page', dep: 'pagination'}
+          {type: 'box-list', name: 'boxList', 'm-label': '块列表', slot: 'right-content'},
+          {type: 'pagination', slot: 'foot-page', dep: {name: 'pagination', label: '是否分页'}, nco: true}
         ]
       }
     ]

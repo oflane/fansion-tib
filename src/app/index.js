@@ -11,8 +11,8 @@ const templates = {
 const temetas = {
   'tib.app.simple-table': () => import('./plain/table/simple-table.temeta.js'),
   'tib.app.simple-form': () => import('./plain/form/simple-form.temeta.js'),
-  'tib.app.of-simple-table': () => import('./ofm/table/simple-table.temeta.js'),
-  'ofm-simple-form': () => import('./ofm/form/simple-form.temeta.js')
+  'tib.app.of-simple-table': () => import('./of/table/simple-table.temeta.js'),
+  'ofm-simple-form': () => import('./of/form/simple-form.temeta.js')
 }
 /**
  * 组件入口

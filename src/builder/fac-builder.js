@@ -1,10 +1,12 @@
 import fase from 'fansion-base'
-import fui from 'fansion-ui'
+import option from './option'
 import compBuilders from './comp-builders'
+import {isPromise} from 'fansion-base/src/utils/util';
 
 const {sure, isFunction} = fase.util
 const gson = fase.rest.gson
-const TEMETA_OPTIONS = fui.constant.TEMETA_OPTIONS
+const module = fase.mod.module
+
 
 let slotId = 0
 /**
@@ -34,7 +36,7 @@ const defaultCompBuild = (c, meta) => {
  */
 const buildComponent = (c, meta) => {
   const cb = compBuilders.getCompBuilder(c.mode || 'defaultComp', c.type)
-  return cb && isFunction(cb.build) ? cb.buildComp(c, meta) : defaultCompBuild(c, meta)
+  return cb && isFunction(cb.buildComp) ? cb.buildComp(c, meta) : defaultCompBuild(c, meta)
 }
 
 /**
@@ -47,6 +49,21 @@ const buildMethods = (c, meta) => {
   const cb = compBuilders.getCompBuilder(c.mode || 'defaultComp', c.type)
   return cb ? isFunction(cb.methods) ? cb.methods(meta, c) : cb.methods : null
 }
+
+const isDepOptionExist = (options, dep) => {
+  if (!dep) {
+    return true
+  }
+  if (!options) {
+    return false
+  }
+  if (typeof dep === 'string') {
+    return options[dep] === true
+  } else if (typeof dep === 'object' && dep.name) {
+    return options[dep.name] === true
+  }
+  return true
+}
 /**
  * 递归构建fayout布局
  * @param layout 布局原始配置
@@ -58,7 +75,7 @@ const buildMethods = (c, meta) => {
 const buildFayout = (layout, fayout, components, methods, meta) => {
   if (Array.isArray(layout)) {
     layout.forEach((c) => {
-      if (c.dep && (!meta.options || meta.options[dep] !== true )) {
+      if (!isDepOptionExist(meta.options, c.dep)) {
         return
       }
       const f = Array.isArray(c) ? [] : {}
@@ -77,7 +94,7 @@ const buildFayout = (layout, fayout, components, methods, meta) => {
       }
       if (k === 'comp') {
         const c = typeof v === 'string' ? {type: v, slot: 'slot' + slotId++} : (v.slot || sure(v.slot = 'slot' + slotId++)) && v
-        if (c.dep && (!meta.options || meta.options[dep] !== true )) {
+        if (!isDepOptionExist(meta.options, c.dep)) {
           return
         }
         fayout.slot = c.slot
@@ -167,22 +184,27 @@ const parseTemplate = (template, meta) => {
  * @param fatas 配置元数据列表
  */
 const addTemetaComp = (comp, temeta) => {
-  if (!comp.name){
+  if (!comp.name) {
     return
   }
   const cb = compBuilders.getCompBuilder(comp.mode || 'defaultComp', comp.type)
-  const {comps, fatas, defaultModel} = temeta
+  const {comps, config, defaultModel} = temeta
+  if (comp.dep) {
+    option.addOptionsSwitchItem(config.options, comp.dep)
+  }
+  if (comp.nco !== true) {
+    comps.push({name: comp.name, type: comp.type, label: comp['m-label'] || comp.label || comp.name})
+  }
   if (cb && cb.temeta) {
     const temeta = isFunction(cb.temeta) ? cb.temeta() : cb.temeta
-    comps.push(comp)
     if (temeta) {
       if (temeta.fata) {
-        fatas[comp.name] = isFunction(temeta.fata) ? temeta.fata() : temeta.fata
+        config[comp.name] = isFunction(temeta.fata) ? temeta.fata() : temeta.fata
       }
       if (temeta.model) {
         defaultModel[comp.name] = isFunction(temeta.model) ? temeta.model() : temeta.model
       } else if (!temeta.fata) {
-        fatas[comp.name] = temeta
+        config[comp.name] = temeta
       }
     }
   }
@@ -222,8 +244,8 @@ const parseTemeta = (template) => {
   const options = template.options
   const temeta = {
     name: template.name || '未定义',
-    comps: options ? [TEMETA_OPTIONS] : [],
-    config: options ? {options} : {},
+    comps: options ? [option.TEMETA_OPTIONS] : [],
+    config: options ? {options} : option.defaultOptionsConfig(),
     defaultModel: {}
   }
   if (layoutType === 'layout') {
@@ -233,7 +255,10 @@ const parseTemeta = (template) => {
       Object.entries(template.comps).forEach(([k, c]) => sure(c.name = k) && addTemetaComp(c, temeta))
     }
   } else {
-    addFayoutTemetaComp(template.layout, temeta.comps, temeta.config)
+    addFayoutTemetaComp(template.layout, temeta)
+  }
+  if (temeta.config.options.components[0].items.size === 0) {
+    temeta.comps.splice(0, 1)
   }
   template.init && (temeta.defaultModel = isFunction(template.init) ? template.init() : template.init)
   return temeta
@@ -245,11 +270,12 @@ const parseTemeta = (template) => {
  */
 const buildTemplate = (template) => {
   isFunction(template) && (template = template())
+  if (isPromise(template)) {
+    return template.then(r => buildTemplate(module(r)))
+  }
   if (typeof template === 'string') {
     if (!template.startsWith('{')) {
-      return () => gson(template).then((res) => {
-        return buildTemplate(res)
-      })
+      return () => gson(template).then(buildTemplate)
     }
     // eslint-disable-next-line no-eval
     template = eval(template)
@@ -266,10 +292,13 @@ const buildTemplate = (template) => {
  */
 const buildTemeta = (template) => {
   isFunction(template) && (template = template())
+  if (isPromise(template)) {
+    return template.then(r => buildTemeta(module(r)))
+  }
   if (typeof template === 'string') {
     if (!template.startsWith('{')) {
       return () => gson(template).then((res) => {
-        return parseTemeta(res)
+        return buildTemeta(res)
       })
     }
     // eslint-disable-next-line no-eval
@@ -277,7 +306,7 @@ const buildTemeta = (template) => {
   }
   return parseTemeta(template)
 }
-export {
+export default {
   buildTemplate,
   buildTemeta
 }

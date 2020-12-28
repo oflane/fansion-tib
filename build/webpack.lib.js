@@ -5,6 +5,7 @@ var path = require('path')
 var webpack = require('webpack')
 var ProgressBarPlugin = require('progress-bar-webpack-plugin')
 var nodeExternals = require('webpack-node-externals')
+var CopyWebpackPlugin = require('copy-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
@@ -14,7 +15,7 @@ module.exports = {
   entry: {app: './src/index.js'},
   output: {
     path: path.resolve(process.cwd(), './lib'),
-    publicPath: 'fansion-tib',
+    publicPath: 'fansion-tib/',
     filename: 'fansion-tib.js',
     chunkFilename: '[id].js',
     libraryTarget: 'umd',
@@ -107,6 +108,13 @@ module.exports = {
   plugins: [
     new VueLoaderPlugin(),
     new ProgressBarPlugin(),
+    // copy custom static assets
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, '../asserts'),
+        to: 'asserts/'
+      }
+    ]),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
     })

@@ -23,25 +23,19 @@ export default {
           {
             type: 'input',
             label: '查询URL: ',
-            field: 'query',
+            field: 'listUrl',
+            placeholder: '格子列表数据记载的url',
             validation: [
-              {required: true, message: '查询地址不能为空', trigger: 'blur'}
+              {required: true, message: '列表查询URL不能为空', trigger: 'blur'}
             ]
           },
           {
             type: 'input',
-            label: '编辑URL: ',
-            field: 'edit',
+            label: '左树条件参数: ',
+            field: 'treeParam',
+            placeholder: '左树选中节点作为列表加载的条件参数名',
             validation: [
-              {required: true, message: '编辑地址不能为空', trigger: 'blur'}
-            ]
-          },
-          {
-            type: 'input',
-            label: '删除URL: ',
-            field: 'delete',
-            validation: [
-              {required: true, message: '删除地址不能为空', trigger: 'blur'}
+              {required: true, message: '左树条件参数不能为空', trigger: 'blur'}
             ]
           }
         ]
@@ -93,7 +87,7 @@ export default {
     return {
       initPage () {
         const vm = this
-        vm.treeLoad()
+        vm.$refs.leftTree.refresh()
       },
       currentNodeChange () {
         this.refresh()
@@ -124,7 +118,7 @@ export default {
       },
       refresh () {
         const vm = this
-        const node = vm.treeGetCurrent()
+        const node = vm.$refs.leftTree.getCurrentNode()
         if (node) {
           vm.loader.setParameter(treeParam, node.id === ALL_DATA ? null : node.id)
         } else {

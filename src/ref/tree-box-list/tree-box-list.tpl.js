@@ -13,47 +13,38 @@ const ALL_DATA = fase.constant.ALL_DATA
  */
 export default {
   name: '左树矩阵',
-  options: {
-    components: [
-      {
-        type: 'fac-form',
-        cols: 1,
-        ':model': 'model',
-        items: [
-          {
-            type: 'input',
-            label: '查询URL: ',
-            field: 'listUrl',
-            placeholder: '格子列表数据记载的url',
-            validation: [
-              {required: true, message: '列表查询URL不能为空', trigger: 'blur'}
-            ]
-          },
-          {
-            type: 'input',
-            label: '左树条件参数: ',
-            field: 'treeParam',
-            placeholder: '左树选中节点作为列表加载的条件参数名',
-            validation: [
-              {required: true, message: '左树条件参数不能为空', trigger: 'blur'}
-            ]
-          }
-        ]
-      }
-    ]
-  },
+  options: [
+    {
+      type: 'input',
+      label: '查询URL: ',
+      field: 'listUrl',
+      placeholder: '格子列表数据记载的url',
+      validation: [
+        {required: true, message: '列表查询URL不能为空', trigger: 'blur'}
+      ]
+    },
+    {
+      type: 'input',
+      label: '左树条件参数: ',
+      field: 'treeParam',
+      placeholder: '左树选中节点作为列表加载的条件参数名',
+      validation: [
+        {required: true, message: '左树条件参数不能为空', trigger: 'blur'}
+      ]
+    }
+  ],
   layout: {
-    class: 'reference-min-height',
+    class: 'reference-min-height content',
     children: [
       {
-        class: 'left-tree',
+        class: 'left-panel',
         children: [
           {
             class: 'dlg-left-search',
-            comp: {type: 'search', name: 'searchTree', slot: 'left-search', dep: {name: 'searchTree', label: '左树查找'}, nco: true}
+            comp: {type: 'search', name: 'searchTree', slot: 'left-search', dep: '左树查找', nco: true}
           },
           {
-            class: 'dlg-left-content',
+            class: 'left-tree',
             comp: {type: 'simple-tree', name: 'leftTree', label: '左树', slot: 'left-content', '@current-change': 'page.currentNodeChange()'}
           }
         ]
@@ -62,7 +53,7 @@ export default {
         class: 'right-content padding-content',
         children: [
           {type: 'box-list', name: 'boxList', 'm-label': '块列表', slot: 'right-content'},
-          {type: 'pagination', slot: 'foot-page', dep: {name: 'pagination', label: '是否分页'}, nco: true}
+          {type: 'pagination', name: 'pagination', slot: 'foot-page', dep: '是否分页', nco: true}
         ]
       }
     ]

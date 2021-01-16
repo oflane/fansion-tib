@@ -50,19 +50,15 @@ const buildMethods = (c, meta) => {
   return cb ? isFunction(cb.methods) ? cb.methods(meta, c) : cb.methods : null
 }
 
-const isDepOptionExist = (options, dep) => {
+const isDepOptionExist = (options, comp) => {
+  const dep = comp.dep
   if (!dep) {
     return true
   }
   if (!options) {
     return false
   }
-  if (typeof dep === 'string') {
-    return options[dep] === true
-  } else if (typeof dep === 'object' && dep.name) {
-    return options[dep.name] === true
-  }
-  return true
+  return options[comp.name] === true
 }
 /**
  * 递归构建fayout布局
@@ -75,7 +71,7 @@ const isDepOptionExist = (options, dep) => {
 const buildFayout = (layout, fayout, components, methods, meta) => {
   if (Array.isArray(layout)) {
     layout.forEach((c) => {
-      if (!isDepOptionExist(meta.options, c.dep)) {
+      if (!isDepOptionExist(meta.options, c)) {
         return
       }
       const f = Array.isArray(c) ? [] : {}
@@ -94,7 +90,7 @@ const buildFayout = (layout, fayout, components, methods, meta) => {
       }
       if (k === 'comp') {
         const c = typeof v === 'string' ? {type: v, slot: 'slot' + slotId++} : (v.slot || sure(v.slot = 'slot' + slotId++)) && v
-        if (!isDepOptionExist(meta.options, c.dep)) {
+        if (!isDepOptionExist(meta.options, c)) {
           return
         }
         fayout.slot = c.slot
@@ -144,7 +140,7 @@ const parseTemplate = (template, meta) => {
     const components = []
     rs.layout = layout
     rs.components = components
-    buildFayout(template.layout, layout, components, meta)
+    buildFayout(template.layout, layout, components, methods, meta)
   }
   if (isFunction(template.buildData)) {
     rs.data = template.buildData(meta)
@@ -190,7 +186,7 @@ const addTemetaComp = (comp, temeta) => {
   const cb = compBuilders.getCompBuilder(comp.mode || 'defaultComp', comp.type)
   const {comps, config, defaultModel} = temeta
   if (comp.dep) {
-    option.addOptionsSwitchItem(config.options, comp.dep)
+    option.addOptionsSwitchItem(config.options, comp)
   }
   if (comp.nco !== true) {
     comps.push({name: comp.name, type: comp.type, label: comp['m-label'] || comp.label || comp.name})
@@ -240,12 +236,17 @@ const addFayoutTemetaComp = (layout, temeta) => {
  * @returns {{comps: (*[]), name: (*|string), config: {options: *}}}
  */
 const parseTemeta = (template) => {
+  const fmeta = fase.plugin.getPlugModule('fansion-meta')
+  if (!fmeta) {
+    console.log("App has not installed 'fansion-meta' package")
+    return
+  }
   const layoutType = template.layout && template.comps ? 'layout' : 'fayout'
-  const options = template.options
+  let options = template.options || option.defaultOptionsConfig()
   const temeta = {
     name: template.name || '未定义',
-    comps: options ? [option.TEMETA_OPTIONS] : [],
-    config: options ? {options} : option.defaultOptionsConfig(),
+    comps: [],
+    config: {options},
     defaultModel: {}
   }
   if (layoutType === 'layout') {
@@ -257,8 +258,12 @@ const parseTemeta = (template) => {
   } else {
     addFayoutTemetaComp(template.layout, temeta)
   }
-  if (temeta.config.options.components[0].items.size === 0) {
-    temeta.comps.splice(0, 1)
+  if (Array.isArray(options)) {
+    options = fmeta.fata.buildFormFata(options)
+    temeta.config.options = options
+  }
+  if (options.components[0].items.length > 0) {
+    temeta.comps.splice(0, 0, option.TEMETA_OPTIONS)
   }
   template.init && (temeta.defaultModel = isFunction(template.init) ? template.init() : template.init)
   return temeta
@@ -280,9 +285,7 @@ const buildTemplate = (template) => {
     // eslint-disable-next-line no-eval
     template = eval(template)
   }
-  return (meta) => {
-    parseTemplate(template, meta)
-  }
+  return meta => parseTemplate(template, meta)
 }
 
 /**

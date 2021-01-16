@@ -17,19 +17,15 @@ export default {
   },
   defaultOptionsConfig () {
     return {
-      options: {
-        components: [{
-          type: 'fac-form',
-          cols: 1,
-          ':model': 'model',
-          items: []
-        }]
-      }
+      options: []
     }
   },
-  addOptionsSwitchItem (opConfig, {name, label}) {
-    if (!opConfig.components[0].items.find(v => v.field === name)) {
-      opConfig.components[0].items.push({type: 'switch-box', label, field: name})
+  addOptionsSwitchItem (opConfig, comp) {
+    const label = typeof comp.dep === 'string' ? comp.dep : comp['m-label'] || comp.label
+    const name = comp.name
+    const items = Array.isArray(opConfig) ? opConfig : opConfig.components[0].items
+    if (!items.find(v => v.field === name)) {
+      items.push({type: 'switch-box', label, field: name})
     }
   }
 }

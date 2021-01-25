@@ -5,7 +5,6 @@
 import fase from 'fansion-base'
 
 const DataLoader = fase.DataLoader
-const ALL_DATA = fase.constant.ALL_DATA
 /**
  * 左树右表格参照配置
  * @author Paul.Yang E-mail:yaboocn@qq.com
@@ -34,35 +33,42 @@ export default {
     }
   ],
   layout: {
-    class: 'reference-min-height content',
+    class: 'content-relative',
     children: [
       {
         class: 'left-panel',
         children: [
           {
             class: 'dlg-left-search',
-            comp: {type: 'search', name: 'searchTree', slot: 'left-search', dep: '左树查找', nco: true}
+            comp: {type: 'search', name: 'searchTree', slot: 'left-search', dep: '左树查找', nco: true, '@search': 'searchTree'}
           },
           {
-            class: 'left-tree',
-            comp: {type: 'simple-tree', name: 'leftTree', label: '左树', slot: 'left-content', '@current-change': 'page.currentNodeChange()'}
+            class: 'padding-10',
+            comp: {type: 'simple-tree', name: 'leftTree', label: '左树', slot: 'left-content', '@current-change': 'currentNodeChange()'}
           }
         ]
       },
       {
-        class: 'right-content padding-content',
+        class: 'right-content padding-15',
         children: [
-          {type: 'box-list', name: 'boxList', 'm-label': '块列表', slot: 'right-content'},
-          {type: 'pagination', name: 'pagination', slot: 'foot-page', dep: '是否分页', nco: true}
+          {
+            class: 'min-height-400',
+            comp: {type: 'box-list', name: 'boxList', 'm-label': '块列表', ':model': 'model'}
+          },
+          {
+            class: 'clearfix',
+            comp: {type: 'pagination', name: 'pagination', ':loader': 'loader', dep: '是否分页', nco: true}
+          }
         ]
       }
     ]
   },
   buildData (meta, data) {
-    return () => {
+    return function() {
+      const vm = this
       const options = meta.options || {}
       const model = options.pagination ? {content: [], totalElements: 0} : []
-      const loader = new DataLoader(options.listUrl, this.page, 'model')
+      const loader = new DataLoader(options.listUrl, vm.page || this, 'model')
       return data ? {
         loader,
         model,
@@ -88,7 +94,7 @@ export default {
         vm.$refs.leftTree.filter(value)
       },
       reset () {
-        searchTree && this.$refs.searchTee.reset()
+        searchTree && this.$refs.searchTree.reset()
         this.$parent.reset && this.$parent.reset()
         this.$refs.boxList.reset()
       },
@@ -111,7 +117,7 @@ export default {
         const vm = this
         const node = vm.$refs.leftTree.getCurrentNode()
         if (node) {
-          vm.loader.setParameter(treeParam, node.id === ALL_DATA ? null : node.id)
+          vm.loader.setParameter(treeParam, node.id)
         } else {
           vm.model = pagination ? {content: [], totalElements: 0} : []
         }

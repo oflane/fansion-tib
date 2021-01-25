@@ -2,7 +2,7 @@
   - Copyright(c) Oflane Software 2017. All Rights Reserved.
   -->
 <template>
-    <div class="reference-min-height content">
+    <div class="min-height-300 content-relative">
       <div class="left-tree">
         <slot name="leftTree"/>
       </div>
@@ -176,20 +176,6 @@ export default {
   left: 0;
   width: 100%;
   text-align: center;
-}
-.content{
-  position: relative;
-}
-.left-tree {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 300px;
-  height:100%;
-  border-right: 1px solid #cccccc;
-}
-.right-content {
-  margin-left:  300px;
 }
 .alter-item {
   overflow: hidden;

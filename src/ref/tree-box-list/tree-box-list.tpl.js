@@ -80,24 +80,44 @@ export default {
     }
   },
   methods (meta) {
+    /**
+     * 元数据
+     */
     const {pagination, treeParam, searchTree, refProp = 'id'} = meta.options
     return {
+      /**
+       * 初始化界面
+       */
       initPage () {
         const vm = this
         vm.$refs.leftTree.refresh()
       },
+      /**
+       * 当前节点变化
+       */
       currentNodeChange () {
         this.refresh()
       },
+      /**
+       * 搜索左树
+       * @param value 检索值
+       */
       searchTree (value) {
         const vm = this
         vm.$refs.leftTree.filter(value)
       },
+      /**
+       * 重置搜索
+       */
       reset () {
         searchTree && this.$refs.searchTree.reset()
         this.$parent.reset && this.$parent.reset()
         this.$refs.boxList.reset()
       },
+      /**
+       * 获取当前数据
+       * @returns {{label: *, value: *}}
+       */
       getData () {
         const boxList = this.$refs.boxList
         const item = boxList.getCurrentItem()
@@ -105,6 +125,10 @@ export default {
         this.reset()
         return r
       },
+      /**
+       * 搜索列表
+       * @param keyword 关键字
+       */
       search (keyword) {
         const vm = this
         if (!keyword) {
@@ -113,6 +137,9 @@ export default {
         }
         vm.loader.setParameter('keyword', keyword)
       },
+      /**
+       * 页面刷新操作
+       */
       refresh () {
         const vm = this
         const node = vm.$refs.leftTree.getCurrentNode()

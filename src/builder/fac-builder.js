@@ -163,13 +163,30 @@ const parseTemplate = (template, meta) => {
   } else if (typeof template.methods === 'string') {
     try {
       // eslint-disable-next-line no-eval
-      eval(template.methods)
-      Object.assign(methods, (meta))
+      Object.assign(methods, eval(template.methods))
     } catch (e) {
       console.warn(e)
     }
   } else if (typeof template.methods === 'object') {
     Object.assign(methods, template.methods)
+  }
+  if (template.watch) {
+    let w = null
+    if (isFunction(template.watch)) {
+      w = template.watch(meta)
+    } else if (typeof template.watch === 'string') {
+      try {
+        // eslint-disable-next-line no-eval
+        w = eval(template.watch)
+      } catch (e) {
+        console.warn(e)
+      }
+    } else if (typeof template.watch === 'object') {
+      w = template.watch
+    }
+    if (w) {
+      rs.watch = w
+    }
   }
   return rs
 }

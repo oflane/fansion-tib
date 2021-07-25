@@ -12,6 +12,11 @@ const DataLoader = fase.DataLoader
  */
 export default {
   name: '左树矩阵',
+  init: {
+    options: {
+      refProp: 'id'
+    }
+  },
   options: [
     {
       type: 'input',
@@ -26,6 +31,15 @@ export default {
       type: 'input',
       label: '左树条件参数: ',
       field: 'treeParam',
+      placeholder: '左树选中节点作为列表加载的条件参数名',
+      validation: [
+        {required: true, message: '左树条件参数不能为空', trigger: 'blur'}
+      ]
+    },
+    {
+      type: 'input',
+      label: '引用字段名: ',
+      field: 'refProp',
       placeholder: '左树选中节点作为列表加载的条件参数名',
       validation: [
         {required: true, message: '左树条件参数不能为空', trigger: 'blur'}

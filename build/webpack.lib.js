@@ -15,7 +15,7 @@ module.exports = {
   entry: {app: './src/index.js'},
   output: {
     path: path.resolve(process.cwd(), './lib'),
-    publicPath: 'fansion-tib/',
+    publicPath: 'web/fansion-tib/',
     filename: 'fansion-tib.js',
     chunkFilename: '[id].js',
     libraryTarget: 'umd',

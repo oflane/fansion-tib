@@ -6,7 +6,7 @@ import fase from 'fansion-base'
 
 const DataLoader = fase.DataLoader
 /**
- * 左树右表格参照配置
+ * 左树右表格引用配置
  * @author Paul.Yang E-mail:yaboocn@qq.com
  * @version 1.0 2017-8-18
  */

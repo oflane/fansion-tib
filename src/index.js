@@ -3,6 +3,7 @@
  */
 import fase from 'fansion-base'
 import fac from 'fansion-fac'
+import builder from './builder'
 import app from './app'
 import ref from './ref'
 const install = (Vue, opt = {}) => {
@@ -16,5 +17,6 @@ const install = (Vue, opt = {}) => {
  * @version 1.0 2011/13/18
  */
 export default {
-  install
+  install,
+  ...builder
 }

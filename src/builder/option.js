@@ -23,7 +23,10 @@ export default {
   addOptionsSwitchItem (opConfig, comp) {
     const label = typeof comp.dep === 'string' ? comp.dep : comp['m-label'] || comp.label
     const name = comp.name
-    const items = Array.isArray(opConfig) ? opConfig : opConfig.components[0].items
+    const items = Array.isArray(opConfig) ? opConfig : (Array.isArray(opConfig.items) ? opConfig.items : Array.isArray(opConfig.components) && opConfig.components.length > 0  && Array.isArray(opConfig.components[0].items) ? opConfig.components[0].items : null)
+    if (items === null) {
+      return
+    }
     if (!items.find(v => v.field === name)) {
       items.push({type: 'switch-box', label, field: name})
     }

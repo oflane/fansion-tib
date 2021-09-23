@@ -32,9 +32,14 @@ const defaultCompBuild = (c, meta) => {
  *    slot：在布局中的位置信息
  *  }
  * @param meta 模板配置数据
+ * @param builder 组件构建器
+ * @param metas 全元数据
  * @returns {*|{ref: *, pos: *, type: *}|{pos: *, type: *}}
  */
-const buildComponent = (c, meta) => {
+const buildComponent = (c, meta, builder) => {
+  if (builder != null && isFunction(builder)) {
+    return builder(c, meta)
+  }
   const cb = compBuilders.getCompBuilder(c.mode || 'defaultComp', c.type)
   return cb && isFunction(cb.buildComp) ? cb.buildComp(c, meta) : defaultCompBuild(c, meta)
 }
@@ -50,6 +55,19 @@ const buildMethods = (c, meta) => {
   return cb ? isFunction(cb.methods) ? cb.methods(meta, c) : cb.methods : null
 }
 
+/**
+ * 获取的模板组件处理器
+ * @param c 组件对象
+ * @param builders 模板的组件处理器集合
+ * @returns {*|null} 组件处理器
+ */
+const getTempBuilder = (c, builders) => c.name ? builders[c.name] : null
+/**
+ * 是否依赖选项中的开关进行显示
+ * @param options 选项元数据
+ * @param comp 组件对象
+ * @returns {boolean} 布尔值
+ */
 const isDepOptionExist = (options, comp) => {
   const dep = comp.dep
   if (!dep) {
@@ -68,7 +86,7 @@ const isDepOptionExist = (options, comp) => {
  * @param methods 方法列表
  * @param meta 元数据对象
  */
-const buildFayout = (layout, fayout, components, methods, meta) => {
+const buildFayout = (layout, fayout, components, methods, meta, builders) => {
   if (Array.isArray(layout)) {
     layout.forEach((c) => {
       if (!isDepOptionExist(meta.options, c)) {
@@ -76,12 +94,15 @@ const buildFayout = (layout, fayout, components, methods, meta) => {
       }
       const f = Array.isArray(c) ? [] : {}
       fayout.push(f)
-      buildFayout(c, f, components, methods, meta)
+      buildFayout(c, f, components, methods, meta, builders)
     })
   } else if (layout.type) {
     layout.slot || sure(layout.slot = 'slot' + slotId++)
     fayout.slot = layout.slot
-    components.push(buildComponent(layout, meta))
+    if (!isDepOptionExist(meta.options, layout)) {
+      return
+    }
+    components.push(buildComponent(layout, meta, getTempBuilder(layout, builders)))
     Object.assign(methods, buildMethods(layout, meta))
   } else {
     Object.entries(layout).forEach(([k, v]) => {
@@ -94,7 +115,7 @@ const buildFayout = (layout, fayout, components, methods, meta) => {
           return
         }
         fayout.slot = c.slot
-        components.push(buildComponent(c, meta))
+        components.push(buildComponent(c, meta, getTempBuilder(c, builders)))
         Object.assign(methods, buildMethods(c, meta))
       } else if (Array.isArray(v)) {
         fayout[k] = v.map(c => {
@@ -102,13 +123,13 @@ const buildFayout = (layout, fayout, components, methods, meta) => {
             return c
           }
           const f = Array.isArray(c) ? [] : {}
-          buildFayout(c, f, components, methods, meta)
+          buildFayout(c, f, components, methods, meta, builders)
           return f
         })
       } else if (typeof v === 'object') {
         const f = {}
         fayout[k] = f
-        buildFayout(v, f, components, methods, meta)
+        buildFayout(v, f, components, methods, meta, builders)
       } else {
         fayout[k] = v
       }
@@ -124,6 +145,7 @@ const buildFayout = (layout, fayout, components, methods, meta) => {
 const parseTemplate = (template, meta) => {
   const layoutType = template.layout && template.comps ? 'layout' : 'fayout'
   const methods = {}
+  const builders = template.builders || {}
   const rs = {
     methods
   }
@@ -131,16 +153,16 @@ const parseTemplate = (template, meta) => {
     rs.layout = template.layout
     const options = meta.options || {}
     if (Array.isArray(template.comps)) {
-      rs.components = template.comps.map(c => (!c.dep || options[c.dep] === true) && sure(Object.assign(methods, buildMethods(c, meta[c.name]))) && buildComponent(c, meta[c.name]))
+      rs.components = template.comps.map(c => (!c.dep || options[c.dep] === true) && sure(Object.assign(methods, buildMethods(c, meta[c.name]))) && buildComponent(c, meta[c.name], getTempBuilder(c, builders)))
     } else {
-      rs.components = Object.entries(template.comps).map(([k, c]) => (!c.dep || options[c.dep] === true) && sure(c.name = k) && sure(Object.assign(methods, buildMethods(c, meta[c.name]))) && buildComponent(c, meta[c.name]))
+      rs.components = Object.entries(template.comps).map(([k, c]) => (!c.dep || options[c.dep] === true) && sure(c.name = k) && sure(Object.assign(methods, buildMethods(c, meta[c.name]))) && buildComponent(c, meta[c.name], getTempBuilder(c, builders)))
     }
   } else {
     const layout = {}
     const components = []
     rs.layout = layout
     rs.components = components
-    buildFayout(template.layout, layout, components, methods, meta)
+    buildFayout(template.layout, layout, components, methods, meta, builders)
   }
   if (isFunction(template.buildData)) {
     rs.data = template.buildData(meta)
@@ -191,7 +213,7 @@ const parseTemplate = (template, meta) => {
   return rs
 }
 /**
- * 添加组件到temata的组件列表和配置元数据中
+ * 添加组件到temata的组件列表和配置元数据中, nco组件不做配置， dep为是否存在开关项
  * @param comp 组件配置
  * @param comps 组件列表
  * @param fatas 配置元数据列表
@@ -206,7 +228,7 @@ const addTemetaComp = (comp, temeta) => {
     option.addOptionsSwitchItem(config.options, comp)
   }
   if (comp.nco !== true) {
-    comps.push({name: comp.name, type: comp.type, label: comp['m-label'] || comp.label || comp.name})
+    comps.push({name: comp.name, type: comp.type, label: comp['m-label'] || comp.label})
   }
   if (cb && cb.temeta) {
     const temeta = isFunction(cb.temeta) ? cb.temeta() : cb.temeta
@@ -275,10 +297,8 @@ const parseTemeta = (template) => {
   } else {
     addFayoutTemetaComp(template.layout, temeta)
   }
-  if (Array.isArray(options)) {
-    options = fmeta.fata.buildFormFata(options)
-    temeta.config.options = options
-  }
+  options = fmeta.fata.buildFormFata(options)
+  temeta.config.options = options
   if (options.components[0].items.length > 0) {
     temeta.comps.splice(0, 0, option.TEMETA_OPTIONS)
   }

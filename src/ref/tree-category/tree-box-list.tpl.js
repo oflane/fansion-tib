@@ -14,7 +14,7 @@ export default {
   name: '左树矩阵',
   init: {
     options: {
-      refProp: 'id'
+      treeProp: 'id'
     }
   },
   options: [
@@ -38,12 +38,15 @@ export default {
     },
     {
       type: 'input',
-      label: '引用字段名: ',
+      label: '左树条件字段: ',
+      field: 'treeProp',
+      placeholder: '左树选中节点作为列表加载的条件属性名'
+    },
+    {
+      type: 'input',
+      label: '引用值字段: ',
       field: 'refProp',
-      placeholder: '左树选中节点作为列表加载的条件参数名',
-      validation: [
-        {required: true, message: '左树条件参数不能为空', trigger: 'blur'}
-      ]
+      placeholder: '引用对应的值字段'
     }
   ],
   layout: {
@@ -58,7 +61,7 @@ export default {
           },
           {
             class: 'padding-10',
-            comp: {type: 'simple-tree', name: 'leftTree', label: '左树', slot: 'left-content', '@current-change': 'currentNodeChange()'}
+            comp: {type: 'simple-tree', name: 'leftTree', 'm-label': '左树', slot: 'left-content', '@current-change': 'currentNodeChange()'}
           }
         ]
       },
@@ -77,17 +80,13 @@ export default {
       }
     ]
   },
-  buildData (meta, data) {
-    return function() {
+  buildData (meta) {
+    return function () {
       const vm = this
       const options = meta.options || {}
       const model = options.pagination ? {content: [], totalElements: 0} : []
       const loader = new DataLoader(options.listUrl, vm.page || this, 'model')
-      return data ? {
-        loader,
-        model,
-        ...data
-      } : {
+      return {
         loader,
         model
       }
@@ -97,7 +96,7 @@ export default {
     /**
      * 元数据
      */
-    const {pagination, treeParam, searchTree, refProp = 'id'} = meta.options
+    const {pagination, treeParam, treeProp = 'id', searchTree, refProp = 'id'} = meta.options
     return {
       /**
        * 初始化界面
@@ -158,7 +157,7 @@ export default {
         const vm = this
         const node = vm.$refs.leftTree.getCurrentNode()
         if (node) {
-          vm.loader.setParameter(treeParam, node.id)
+          vm.loader.setParameter(treeParam, node[treeProp])
         } else {
           vm.model = pagination ? {content: [], totalElements: 0} : []
         }

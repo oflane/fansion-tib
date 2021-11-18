@@ -49,6 +49,12 @@ export default {
       const sliceData = options.slice ? {content: [], last: true} : []
       const model = []
       const loader = options.slice ? new DataLoader(options.listUrl, vm.page || this, 'sliceData') : new DataLoader(options.listUrl, vm.page || this, 'model')
+      Object.entries(vm.$props).forEach(([k, v]) => {
+        const t = typeof v
+        if (!(k in ['meta', 'owner', 'data']) && (t === 'string' || t ==='number' || t === 'boolean')) {
+          loader.setParameter(k, v)
+        }
+      })
       return data ? {
         loader,
         model,

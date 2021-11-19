@@ -53,7 +53,7 @@ export default {
       Object.entries(vm.$attrs).forEach(([k, v]) => {
         const t = typeof v
         if (k !== 'meta' && k !== 'owner' && k !== 'data' && (t === 'string' || t === 'number' || t === 'boolean')) {
-          loader.setParameter(k, v)
+          loader.setParameter(k, v, false)
         }
       })
       return data ? {

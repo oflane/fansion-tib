@@ -14,9 +14,10 @@ export default {
   name: '矩阵列表',
   options: [
     {
-      type: 'input',
-      label: '查询URL: ',
+      type: 'reference',
+      label: '查询服务: ',
       field: 'listUrl',
+      refTo: 'fasm:base:application-modeling:ref:services',
       placeholder: '格子列表数据记载的url',
       validation: [
         {required: true, message: '列表查询URL不能为空', trigger: 'blur'}
@@ -49,9 +50,9 @@ export default {
       const sliceData = options.slice ? {content: [], last: true} : []
       const model = []
       const loader = options.slice ? new DataLoader(options.listUrl, vm.page || this, 'sliceData') : new DataLoader(options.listUrl, vm.page || this, 'model')
-      Object.entries(vm.$props).forEach(([k, v]) => {
+      Object.entries(vm.$attrs).forEach(([k, v]) => {
         const t = typeof v
-        if (!(k in ['meta', 'owner', 'data']) && (t === 'string' || t ==='number' || t === 'boolean')) {
+        if (k !== 'meta' && k !== 'owner' && k !== 'data' && (t === 'string' || t === 'number' || t === 'boolean')) {
           loader.setParameter(k, v)
         }
       })

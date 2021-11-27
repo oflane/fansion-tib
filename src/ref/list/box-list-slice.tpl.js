@@ -39,7 +39,7 @@ export default {
       },
       {
         class: 'clearfix',
-        comp: {type: 'slice', name: 'slice', ':loader': 'loader', ':model': 'sliceData', dep: '是否分片', nco: true}
+        comp: {type: 'slice', name: 'slice', ':loader': 'loader', ':model': 'model', dep: '是否分片', nco: true}
       }
     ]
   },
@@ -47,9 +47,8 @@ export default {
     return function () {
       const vm = this
       const options = meta.options || {}
-      const sliceData = options.slice ? {content: [], last: true} : []
-      const model = []
-      const loader = options.slice ? new DataLoader(options.listUrl, vm.page || this, 'sliceData') : new DataLoader(options.listUrl, vm.page || this, 'model')
+      const model = options.slice ? {content: [], last: true} : []
+      const loader = new DataLoader(options.listUrl, vm.page || this, 'model')
       Object.entries(vm.$attrs).forEach(([k, v]) => {
         const t = typeof v
         if (k !== 'meta' && k !== 'owner' && k !== 'data' && (t === 'string' || t === 'number' || t === 'boolean')) {
@@ -59,13 +58,18 @@ export default {
       return data ? {
         loader,
         model,
-        sliceData,
         ...data
       } : {
         loader,
-        model,
-        sliceData
+        model
       }
+    }
+  },
+  builders: {
+    boxList (c, meta) {
+      const {slice} = meta.options
+      const label = meta.boxList.label || 'label'
+      return Object.assign({ref: c.name, pos: c.slot}, c, {label, ':model': slice ? 'model.content' : 'model'})
     }
   },
   watch: {

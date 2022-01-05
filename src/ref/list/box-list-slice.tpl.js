@@ -17,7 +17,7 @@ export default {
       type: 'reference',
       label: '查询服务: ',
       field: 'listUrl',
-      refTo: 'fasm:base:application-modeling:ref:services',
+      refTo: 'fasm:application-modeling:ref:services',
       placeholder: '格子列表数据记载的url',
       validation: [
         {required: true, message: '列表查询URL不能为空', trigger: 'blur'}

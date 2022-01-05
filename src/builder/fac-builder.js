@@ -1,9 +1,8 @@
 import fase from 'fansion-base'
 import option from './option'
 import compBuilders from './comp-builders'
-import {isPromise} from 'fansion-base/src/utils/util';
 
-const {sure, isFunction} = fase.util
+const {sure, isFunction, isPromise} = fase.util
 const gson = fase.rest.gson
 const module = fase.mod.module
 

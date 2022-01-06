@@ -61,7 +61,7 @@ export default {
           },
           {
             class: 'padding-10',
-            comp: {type: 'simple-tree', name: 'leftTree', 'm-label': '左树', slot: 'left-content', '@current-change': 'currentNodeChange()'}
+            comp: {type: 'simple-tree', name: 'leftTree', 'm-label': '左树', slot: 'left-content', '@current-change': 'currentNodeChange()', highlightCurrent: true, ':filter-node-method': 'filterNode',}
           }
         ]
       },
@@ -92,6 +92,12 @@ export default {
       }
     }
   },
+  builders: {
+    boxList (c, meta) {
+      const pagination = meta.options.pagination
+      return Object.assign({ref: c.name, pos: c.slot}, c, {':model': pagination ? 'model.content' : 'model'})
+    }
+  },
   methods (meta) {
     /**
      * 元数据
@@ -118,6 +124,9 @@ export default {
       searchTree (value) {
         const vm = this
         vm.$refs.leftTree.filter(value)
+      },
+      filterNode (value, data) {
+        return !value || data.label.indexOf(value) !== -1
       },
       /**
        * 重置搜索

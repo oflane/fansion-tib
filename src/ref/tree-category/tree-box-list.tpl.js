@@ -143,6 +143,9 @@ export default {
       getData () {
         const boxList = this.$refs.boxList
         const item = boxList.getCurrentItem()
+        if (!item) {
+          return
+        }
         const r = {value: item[refProp], label: item[boxList.label]}
         this.reset()
         return r

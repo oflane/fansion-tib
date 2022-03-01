@@ -3,10 +3,13 @@
  * Copyright(c) Oflane Software 2017. All Rights Reserved.
  */
 import fase from 'fansion-base'
+import fui from "fansion-ui";
 
 const DataLoader = fase.DataLoader
+const {handler, msg} = fui
+const {furl, post} = fase.rest
 /**
- * 左树右表格引用配置
+ * 简单列表
  * @author Paul.Yang E-mail:yaboocn@qq.com
  * @version 1.0 2017-8-18
  */
@@ -14,130 +17,182 @@ export default {
   name: '简单列表',
   options: [
     {
-      type: 'input',
-      label: '查询URL: ',
+      type: 'reference',
+      label: '查询服务: ',
       field: 'query',
+      refTo: 'fasm:application-modeling:ref:services',
       validation: [
         {required: true, message: '查询地址不能为空', trigger: 'blur'}
       ]
     },
     {
-      type: 'input',
-      label: '编辑URL: ',
+      type: 'reference',
+      label: '编辑页面: ',
       field: 'edit',
+      refTo: 'fasm:application-modeling:ref:app-paths',
+      placeholder: '编辑单条数据界面',
       validation: [
         {required: true, message: '编辑地址不能为空', trigger: 'blur'}
       ]
     },
     {
-      type: 'input',
-      label: '删除URL: ',
+      type: 'reference',
+      label: '删除服务: ',
       field: 'delete',
+      refTo: 'fasm:application-modeling:ref:services',
       validation: [
         {required: true, message: '删除地址不能为空', trigger: 'blur'}
       ]
     }
   ],
   layout: {
-    class: 'content-relative',
-    children: [
-      {
-        class: 'min-height-400 padding-content',
-        comp: {type: 'box-list', name: 'boxList', 'm-label': '块列表', ':model': 'model', '@dblclick': 'reference"'}
-      },
-      {
-        class: 'clearfix',
-        comp: {type: 'slice', name: 'slice', ':loader': 'loader', ':model': 'model', dep: '是否分片', nco: true}
-      }
-    ]
+    header: {
+      class: 'layout-header layout-rows clearfix',
+      rows: [
+        {
+          cols: [
+            {
+              ':span': 12,
+              comp:{
+                type: 'button-bar',
+                name: 'headerButton',
+                slot: 'header-button',
+                buttons: [
+                  {
+                    name: '新增',
+                    click: 'add',
+                    type: 'primary' // success warning danger info
+                  },
+                  {
+                    name: '删除',
+                    click: 'deletes'
+                  }
+                ],
+                nco: true
+              }
+            },
+            {
+              ':span': 12,
+              comp: {
+                type: 'search',
+                name: 'headerSearch',
+                slot: 'header-search',
+                'm-label': '简单搜索',
+                xclass: 'pull-right',
+                ':loader': 'loader',
+                advance: 'xqueryComp'
+              }
+            }
+          ]
+        },
+        {
+          name: 'xqueryComp',
+          type: 'xquery',
+          'm-label': '高级查询',
+          slot: 'header-query',
+          ':loader': 'loader'
+        }
+      ]
+    },
+    body: {
+      type: 'simple-table',
+      name: 'simpleTable',
+      'm-label': '列表',
+      slot: 'body',
+      '@selection-change': 'page.handleSelectionChange($event)',
+      ':loader': 'loader'
+    },
+    footer: {
+      type: 'pagination',
+      name: 'pagination',
+      ':model': 'model',
+      ':loader': 'loader',
+      slot: 'footer',
+      dep: '是否分页',
+      nco: true
+    }
   },
-  buildData (meta, data) {
+  buildData (meta) {
     return function () {
       const vm = this
       const options = meta.options || {}
-      const model = options.slice ? {content: [], last: true} : []
-      const loader = new DataLoader(options.listUrl, vm.page || this, 'model')
-      Object.entries(vm.$attrs).forEach(([k, v]) => {
-        const t = typeof v
-        if (k !== 'meta' && k !== 'owner' && k !== 'data' && (t === 'string' || t === 'number' || t === 'boolean')) {
-          loader.setParameter(k, v, false)
-        }
-      })
-      return data ? {
-        loader,
-        model,
-        ...data
-      } : {
+      const model = options.pagination ? {content: [], totalPages: 0, totalElements:0} : []
+      const loader = new DataLoader('POST:' + options.query, vm.page || this, 'model', 'POST')
+      loader.setVueCompAttrs(vm)
+      return {
+        multipleSelection: [],
         loader,
         model
       }
     }
   },
   builders: {
-    boxList (c, meta) {
-      const {slice} = meta.options
-      const label = meta.boxList.label || 'label'
-      return Object.assign({ref: c.name, pos: c.slot}, c, {label, ':model': slice ? 'model.content' : 'model'})
-    }
-  },
-  watch: {
-    sliceData (v) {
-      v && v.content.length > 0 && (this.model = this.model.concat(v.content))
+    headerSearch (c, meta) {
+      if (meta.headerSearch) {
+        return Object.assign({ref: c.name, pos: c.slot}, c, meta.headerSearch)
+      }
+    },
+    xqueryComp (c, meta) {
+      if (meta.xqueryComp) {
+        return Object.assign({ref: c.name, pos: c.slot}, c, meta.xqueryComp)
+      }
+    },
+    simpleTable (c, meta) {
+      const metaColumns = meta.simpleTable.columns || []
+      const model = meta.options.pagination ? 'model.content' : ':model'
+      const columns = [{ selection: true }, ...metaColumns, fui.generator.buttonsColumn([{ click: 'page.edit(scope.row)', text: '查看' }, { click: 'page.delete(scope.row)', text: '删除' }])]
+      return Object.assign({ref: c.name, pos: c.slot}, c, {columns, ':model': model})
     }
   },
   methods (meta) {
-    /**
-     * 元数据
-     */
-    const {refProp = 'id'} = meta.options
     return {
-      /**
-       * 初始化界面
-       */
+      handleSelectionChange (val) {
+        this.multipleSelection = val
+      },
       initPage () {
+        this.queryData()
+      },
+      queryData () {
+        this.loader.load()
+      },
+      add () {
+        this.$router.push(furl(meta.options.edit, {id: fase.constant.ADD_ID}))
+      },
+      edit (row) {
+        this.$router.push(furl(meta.options.edit, row))
+      },
+      delete (row) {
         const vm = this
-        vm.refresh()
+        handler.confirmHandle({
+          vm,
+          msg: '删除数据操作, 是否继续?',
+          csg: '已取消删除',
+          handler: () => {
+            let ids
+            if (Array.isArray(row)) {
+              ids = row.map(r => r.id)
+            } else {
+              ids = row.id
+            }
+            post(meta.options.delete, {id: ids}).then(() => {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              })
+              vm.queryData()
+            }).catch(() => msg.error.del())
+          }
+        })
       },
-      /**
-       * 重置搜索
-       */
-      reset () {
-        this.$parent.reset && this.$parent.reset()
-        this.$refs.boxList.reset()
-      },
-      /**
-       * 获取当前数据
-       * @returns {{label: *, value: *}}
-       */
-      getData () {
-        const boxList = this.$refs.boxList
-        const item = boxList.getCurrentItem()
-        const r = Object.assign({}, item, {value: item[refProp], label: item[boxList.label]})
-        this.reset()
-        return r
-      },
-      reference (item) {
-        this.$closeReference(item)
-      },
-      /**
-       * 搜索列表
-       * @param keyword 关键字
-       */
-      search (keyword) {
-        const vm = this
-        if (!keyword) {
-          const container = vm.$parent.$parent
-          keyword = container.getKeyword && container.getKeyword()
+      deletes () {
+        if (this.multipleSelection.length === 0) {
+          this.$message({
+            type: 'info',
+            message: '请勾选需要删除的数据!'
+          })
+          return
         }
-        vm.loader.setParameter('keyword', keyword)
-      },
-      /**
-       * 页面刷新操作
-       */
-      refresh () {
-        const vm = this
-        this.model = []
-        vm.loader.load(true)
+        this.delete(this.multipleSelection)
       }
     }
   }

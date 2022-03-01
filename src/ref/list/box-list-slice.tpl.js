@@ -49,12 +49,7 @@ export default {
       const options = meta.options || {}
       const model = options.slice ? {content: [], last: true} : []
       const loader = new DataLoader(options.listUrl, vm.page || this, 'model')
-      Object.entries(vm.$attrs).forEach(([k, v]) => {
-        const t = typeof v
-        if (k !== 'meta' && k !== 'owner' && k !== 'data' && (t === 'string' || t === 'number' || t === 'boolean')) {
-          loader.setParameter(k, v, false)
-        }
-      })
+      loader.setVueCompAttrs(vm)
       return data ? {
         loader,
         model,
@@ -104,6 +99,9 @@ export default {
       getData () {
         const boxList = this.$refs.boxList
         const item = boxList.getCurrentItem()
+        if (!item) {
+          return
+        }
         const r = Object.assign({}, item, {value: item[refProp], label: item[boxList.label]})
         this.reset()
         return r

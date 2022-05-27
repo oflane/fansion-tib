@@ -20,9 +20,9 @@ function resolve (dir) {
 }
 function externals () {
   const exts = {
-    vue: 'Vue',
-    'element-ui': 'ELEMENT',
-    'vue-router': 'VueRouter'
+    vue: 'vue',
+    'element-ui': 'element-ui',
+    'vue-router': 'vue-router'
   }
   options.modules.forEach(function(e){
     exts[e] = e
@@ -37,7 +37,7 @@ module.exports = {
   entry,
   output: {
     path: path.resolve(process.cwd(), './lib'),
-    publicPath: 'web/'+moduleName+'/',
+    publicPath: 'static/js/'+moduleName+'/',
     filename: moduleName+'.js',
     chunkFilename: moduleName + '.[id].js',
     libraryTarget: 'umd',

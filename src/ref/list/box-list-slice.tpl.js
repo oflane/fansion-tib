@@ -39,24 +39,24 @@ export default {
       },
       {
         class: 'clearfix',
-        comp: {type: 'slice', name: 'slice', ':loader': 'loader', ':model': 'model', dep: '是否分片', nco: true}
+        comp: {type: 'slice', name: 'slice', ':loader': 'loader', ':model': 'loadData', dep: '是否分片', nco: true}
       }
     ]
   },
-  buildData (meta, data) {
+  buildData (meta, data = {}) {
     return function () {
       const vm = this
       const options = meta.options || {}
-      const model = options.slice ? {content: [], last: true} : []
-      const loader = new DataLoader(options.listUrl, vm.page || this, 'model')
+      const loadData = options.slice ? {content: [], last: true} : []
+      console.log('===='+ loadData)
+      const model = []
+      const loader = new DataLoader(options.listUrl, vm.page || this, 'loadData')
       loader.setVueCompAttrs(vm)
-      return data ? {
+      return {
         loader,
         model,
+        loadData,
         ...data
-      } : {
-        loader,
-        model
       }
     }
   },
@@ -64,12 +64,12 @@ export default {
     boxList (c, meta) {
       const {slice} = meta.options
       const label = meta.boxList.label || 'label'
-      return Object.assign({ref: c.name, pos: c.slot}, c, {label, ':model': slice ? 'model.content' : 'model'})
+      return Object.assign({ref: c.name, pos: c.slot}, c, {label, ':model': 'model'})
     }
   },
   watch: {
-    sliceData (v) {
-      v && v.content.length > 0 && (this.model = this.model.concat(v.content))
+    loadData (v) {
+       v && (this.model = this.model.concat(Array.isArray(v) ? v : v.content))
     }
   },
   methods (meta) {

@@ -5,6 +5,7 @@ import compBuilders from './comp-builders'
 const {sure, isFunction, isPromise} = fase.util
 const gson = fase.rest.gson
 const module = fase.mod.module
+const evalMethods = fase.render.evalMethods
 
 
 let slotId = 0
@@ -32,7 +33,6 @@ const defaultCompBuild = (c, meta) => {
  *  }
  * @param meta 模板配置数据
  * @param builder 组件构建器
- * @param metas 全元数据
  * @returns {*|{ref: *, pos: *, type: *}|{pos: *, type: *}}
  */
 const buildComponent = (c, meta, builder) => {
@@ -84,6 +84,7 @@ const isDepOptionExist = (options, comp) => {
  * @param components 组件列表
  * @param methods 方法列表
  * @param meta 元数据对象
+ * @param builders 构建器
  */
 const buildFayout = (layout, fayout, components, methods, meta, builders) => {
   if (Array.isArray(layout)) {
@@ -191,6 +192,8 @@ const parseTemplate = (template, meta) => {
   } else if (typeof template.methods === 'object') {
     Object.assign(methods, template.methods)
   }
+  // 添加配置方法
+  Object.assign(methods, evalMethods(meta.methods))
   if (template.watch) {
     let w = null
     if (isFunction(template.watch)) {
@@ -214,8 +217,7 @@ const parseTemplate = (template, meta) => {
 /**
  * 添加组件到temata的组件列表和配置元数据中, nco组件不做配置， dep为是否存在开关项
  * @param comp 组件配置
- * @param comps 组件列表
- * @param fatas 配置元数据列表
+ * @param temeta 配置元数据列表
  */
 const addTemetaComp = (comp, temeta) => {
   if (!comp.name) {
@@ -287,6 +289,13 @@ const parseTemeta = (template) => {
     config: {options},
     defaultModel: {}
   }
+  if (template.metaMethods !== false) {
+    temeta.comps[0] = {
+      name: 'methods',
+      type: 'methods',
+      label: '动态方法'
+    }
+  }
   if (layoutType === 'layout') {
     if (Array.isArray(template.comps)) {
       template.comps.forEach(c => addTemetaComp(c, temeta))
@@ -301,6 +310,7 @@ const parseTemeta = (template) => {
   if (options.components[0].items.length > 0) {
     temeta.comps.splice(0, 0, option.TEMETA_OPTIONS)
   }
+
   template.init && (temeta.defaultModel = isFunction(template.init) ? template.init() : template.init)
   return temeta
 }
